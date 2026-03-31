@@ -16,7 +16,48 @@ const LinkedinIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
 );
 
+import { useState, FormEvent } from "react";
+
+// ... [existing icons are preserved naturally because the replacement starts at line 19, wait, I need to replace from line 19 to 77]
+// Need to be careful here to import correctly and replace only the component body. I'll replace from `export default function ContactPage() {`
+
 export default function ContactPage() {
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    
+    // Client-side validation
+    if (!formData.name.trim()) return setErrorMsg("Name is required.");
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      return setErrorMsg("A valid email address is required.");
+    }
+    if (!formData.message.trim()) return setErrorMsg("Message cannot be empty.");
+
+    setStatus("loading");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        throw new Error("Delivery failed via API engine");
+      }
+
+      setStatus("success");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (err: any) {
+      setStatus("error");
+      setErrorMsg(err.message || "An unknown error occurred.");
+    }
+  };
+
   return (
     <main className="bg-background min-h-screen text-white pt-32 pb-24">
       <Navbar />
@@ -32,46 +73,65 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* FORM */}
           <div className="bg-surface/50 border border-white/5 p-8 rounded-3xl backdrop-blur-xl">
-            <form className="space-y-6 flex flex-col items-center">
+            <form onSubmit={handleSubmit} className="space-y-6 flex flex-col items-center">
               <div className="w-full">
-                <label className="text-sm text-foreground mb-2 block font-medium">Full Name</label>
+                <label className="text-sm text-foreground mb-2 block font-medium">Full Name *</label>
                 <input
                   type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="John Doe"
                   className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 placeholder-white/30 focus:outline-none focus:border-primary transition-colors"
+                  disabled={status === "loading" || status === "success"}
                 />
               </div>
               <div className="w-full">
-                <label className="text-sm text-foreground mb-2 block font-medium">Email Address</label>
+                <label className="text-sm text-foreground mb-2 block font-medium">Email Address *</label>
                 <input
                   type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="john@example.com"
                   className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 placeholder-white/30 focus:outline-none focus:border-primary transition-colors"
+                  disabled={status === "loading" || status === "success"}
                 />
               </div>
               <div className="w-full">
                 <label className="text-sm text-foreground mb-2 block font-medium">Phone Number</label>
                 <input
                   type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+251 911 234 567"
                   className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 placeholder-white/30 focus:outline-none focus:border-primary transition-colors"
+                  disabled={status === "loading" || status === "success"}
                 />
               </div>
               <div className="w-full">
-                <label className="text-sm text-foreground mb-2 block font-medium">Message</label>
+                <label className="text-sm text-foreground mb-2 block font-medium">Message *</label>
                 <textarea
                   rows={5}
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Tell us about your project..."
                   className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 placeholder-white/30 focus:outline-none focus:border-primary transition-colors resize-none"
+                  disabled={status === "loading" || status === "success"}
                 />
               </div>
               
+              {errorMsg && <p className="text-red-400 text-sm self-start">{errorMsg}</p>}
+              
               <button
-                type="button"
-                className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl hover:shadow-[0_0_25px_rgba(249,115,22,0.5)] transition-all hover:scale-[1.02]"
+                type="submit"
+                disabled={status === "loading" || status === "success"}
+                className={`w-full flex items-center justify-center gap-3 px-8 py-4 font-bold rounded-xl transition-all ${
+                  status === "success" 
+                    ? "bg-green-500 text-white cursor-default" 
+                    : "bg-gradient-to-r from-primary to-secondary text-white hover:shadow-[0_0_25px_rgba(249,115,22,0.5)] hover:scale-[1.02]"
+                }`}
               >
-                Send Message
-                <Send className="w-5 h-5" />
+                {status === "loading" ? "Sending..." : status === "success" ? "Message Sent!" : "Send Message"}
+                {status !== "success" && status !== "loading" && <Send className="w-5 h-5" />}
               </button>
             </form>
           </div>

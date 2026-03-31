@@ -56,7 +56,7 @@ export default function ServicesPage() {
           {services.map((svc, idx) => (
             <div
               key={idx}
-              className="group bg-surface border border-white/5 p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 hover:shadow-[0_10px_30px_rgba(249,115,22,0.1)] hover:border-primary/30"
+              className="group bg-surface border border-white/5 p-8 rounded-2xl transition-all duration-300 hover:-translate-y-[6px] hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:border-primary/30"
             >
               <div className="mb-6 p-4 bg-background inline-flex rounded-xl group-hover:scale-110 transition-transform duration-500">
                 {svc.icon}
