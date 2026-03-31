@@ -146,7 +146,7 @@ export default function Home() {
 
         <SceneText position="center" delay={0.2} depth={0.8}>
           <h1 className="text-4xl md:text-[72px] font-bold tracking-tight mb-6 drop-shadow-2xl text-headline leading-tight">
-            ከዛሬ ያለውን ተጠቅመን ነገን እንገነባለን
+            ሰዉ ካላየው፣ አልተሸጠም!
           </h1>
           <p className="text-lg md:text-[22px] max-w-2xl mx-auto text-foreground font-light tracking-wide">
             Strategic marketing and creative advertising for modern businesses
