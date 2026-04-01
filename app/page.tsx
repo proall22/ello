@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import React from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -123,6 +124,90 @@ function TextOverlay({
 
 	return (
 		<div className={`absolute inset-0 z-10 pointer-events-none ${bgClass}`} />
+	);
+}
+
+function StaticCinematicSection({
+	id,
+	imagePath,
+	children,
+	animationType = "horizontal",
+	ariaLabel,
+}: {
+	id: string;
+	imagePath: string;
+	children: React.ReactNode;
+	animationType?: "horizontal" | "vertical";
+	ariaLabel?: string;
+}) {
+	const containerRef = useRef<HTMLDivElement>(null);
+	const imageRef = useRef<HTMLDivElement>(null);
+	const contentRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const container = containerRef.current;
+		const image = imageRef.current;
+		const content = contentRef.current;
+
+		if (!container || !image || !content) return;
+
+		const tl = gsap.timeline({
+			scrollTrigger: {
+				trigger: container,
+				start: "top top",
+				end: "+=150%",
+				scrub: 1,
+				pin: true,
+				anticipatePin: 1,
+			},
+		});
+
+		if (animationType === "horizontal") {
+			// Image slides in from the left, content comes later
+			gsap.set(image, { x: "-100%", opacity: 0 });
+			gsap.set(content, { opacity: 0, y: 50 });
+
+			tl.to(image, { x: "0%", opacity: 1, ease: "power2.out" })
+				.to(content, { opacity: 1, y: 0, ease: "power2.out" }, "-=0.3");
+		} else {
+			// Vertical: Image fades in/up, content follows
+			gsap.set(image, { scale: 1.1, opacity: 0, filter: "brightness(0.5) blur(10px)" });
+			gsap.set(content, { opacity: 0, y: 100 });
+
+			tl.to(image, { scale: 1, opacity: 1, filter: "brightness(1) blur(0px)", ease: "power2.out" })
+				.to(content, { opacity: 1, y: 0, ease: "power2.out" }, "-=0.5");
+		}
+
+		return () => {
+			tl.kill();
+			ScrollTrigger.getAll().forEach((t) => {
+				if (t.vars.trigger === container) t.kill();
+			});
+		};
+	}, [animationType]);
+
+	return (
+		<section
+			id={id}
+			ref={containerRef}
+			aria-label={ariaLabel}
+			className="h-screen w-full relative bg-background overflow-hidden"
+		>
+			<div
+				ref={imageRef}
+				className="absolute inset-0 w-full h-full"
+				style={{
+					backgroundImage: `url(${imagePath})`,
+					backgroundSize: "cover",
+					backgroundPosition: "center",
+				}}
+			/>
+			<div className="absolute inset-0 z-10 flex items-center justify-center p-6 md:p-24">
+				<div ref={contentRef} className="w-full h-full flex items-center justify-center">
+					{children}
+				</div>
+			</div>
+		</section>
 	);
 }
 
@@ -274,22 +359,66 @@ export default function Home() {
 				id="scene_07"
 				folder="harvest_sucess"
 				frameCount={240}
-				ariaLabel="Final Call to Action"
+				ariaLabel="Harvesting Success"
 			>
 				<TextOverlay position="center" />
-				<SceneText position="center">
+				<SceneText position="center" depth={-0.5}>
+					<h2 className="text-3xl md:text-[54px] font-bold tracking-tight mb-8 drop-shadow-[0_4px_24px_rgba(0,0,0,1)] text-headline">
+						Where Strategy Meets Creativity
+					</h2>
+					<p className="text-xl md:text-[32px] text-primary font-medium tracking-wide drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] max-w-4xl leading-relaxed italic">
+						Harvesting the fruits of persistence, we transform vision into impact. <br />
+						<span className="text-white not-italic font-bold mt-4 block">
+							Results aren't just seen; they are felt.
+						</span>
+					</p>
+				</SceneText>
+			</CanvasSequence>
+
+			<StaticCinematicSection
+				id="scene_result"
+				imagePath="/assets/result/result.webp"
+				animationType="horizontal"
+				ariaLabel="The Impact of Our Work"
+			>
+				<div className="text-center">
 					<h2 className="text-5xl md:text-[72px] font-bold tracking-tight mb-12 drop-shadow-2xl text-headline">
 						Let’s build something{" "}
 						<span className="text-primary glow-text">impactful</span>
 					</h2>
 					<a
 						href="/contact"
-						className="inline-flex items-center justify-center px-10 py-5 bg-gradient-to-r from-[#F97316] to-[#FB923C] text-white rounded-full text-xl font-bold tracking-widest uppercase transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(249,115,22,0.8)] pointer-events-auto"
+						className="inline-flex items-center justify-center px-12 py-6 bg-gradient-to-r from-[#F97316] to-[#FB923C] text-white rounded-full text-2xl font-bold tracking-widest uppercase transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(249,115,22,0.9)] pointer-events-auto"
 					>
 						Contact Us
 					</a>
-				</SceneText>
-			</CanvasSequence>
+				</div>
+			</StaticCinematicSection>
+
+			<StaticCinematicSection
+				id="scene_digital_advert"
+				imagePath="/assets/digital_advert/digital.webp"
+				animationType="vertical"
+				ariaLabel="Building the Future of Advertising"
+			>
+				<div className="max-w-4xl">
+					<SceneText position="center">
+						<h2 className="text-4xl md:text-[64px] font-black leading-tight mb-8 text-headline drop-shadow-[0_4px_30px_rgba(0,0,0,1)]">
+							Building the Future of Advertising <br />
+							<span className="text-primary">is our strength</span>
+						</h2>
+						<div className="flex flex-col gap-6 text-xl md:text-[30px] text-foreground font-light leading-relaxed">
+							<p className="drop-shadow-lg">
+								We are developing next-generation advertising solutions.
+							</p>
+							<p className="drop-shadow-lg font-medium text-white border-l-4 border-primary pl-8 py-2 bg-black/20 backdrop-blur-sm">
+								Our goal is to redefine how brands communicate not just on screens,
+								but <span className="text-primary font-bold">in the sky</span>.
+							</p>
+						</div>
+					</SceneText>
+				</div>
+			</StaticCinematicSection>
 		</main>
 	);
 }
