@@ -1,41 +1,91 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #F97316;
-  --color-secondary: #FDBA74;
-  --color-background: #0B0B0B;
-  --color-surface: #111111;
-  --color-foreground: rgba(255, 255, 255, 0.75);
-  --color-headline: #FFFFFF;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	--color-primary: #f97316;
+	--color-secondary: #fdba74;
+	--color-background: #0b0b0b;
+	--color-surface: #111111;
+	--color-foreground: rgba(255, 255, 255, 0.75);
+	--color-headline: #ffffff;
+	--font-sans:
+		var(--font-inter), ui-sans-serif, system-ui, sans-serif,
+		"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 :root {
-  --background: #0B0B0B;
-  --foreground: rgba(255, 255, 255, 0.75);
+	--background: #0b0b0b;
+	--foreground: rgba(255, 255, 255, 0.75);
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  overscroll-behavior: none;
+	background-color: var(--background);
+	color: var(--foreground);
+	overscroll-behavior: none;
+	/* Use normal image rendering to preserve photographic clarity */
+	image-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  color: #FFFFFF;
+img {
+	/* Allow browsers to use default high-quality image interpolation */
+	image-rendering: auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	color: #ffffff;
 }
 
 /* Cinematic scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+	width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0B0B;
+	background: #0b0b0b;
 }
 ::-webkit-scrollbar-thumb {
-  background: #222;
-  border-radius: 10px;
+	background: #222;
+	border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #F97316;
+	background: #f97316;
+}
+
+@keyframes float {
+	0% {
+		transform: translateY(0) translateX(0);
+		opacity: 0;
+	}
+	20% {
+		opacity: 0.4;
+	}
+	80% {
+		opacity: 0.4;
+	}
+	100% {
+		transform: translateY(-150px) translateX(20px);
+		opacity: 0;
+	}
+}
+
+.animate-float {
+	animation: float linear infinite;
+}
+
+.text-3d {
+	color: #ffffff;
+	letter-spacing: -0.04em;
+	text-shadow:
+		0 1px 0 #888,
+		0 2px 0 #777,
+		0 3px 0 #666,
+		0 4px 0 #555,
+		0 0 10px rgba(249, 115, 22, 0.4),
+		/* Subtle Orange Edge Glow */ 0 8px 15px rgba(0, 0, 0, 0.6);
+	filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.7));
 }

@@ -39,8 +39,11 @@ export default function CanvasSequence({ folder, frameCount, id, children, onPro
 
     if (!canvas || !ctx || !container) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
 
     const obj = { frame: 0 };
 
@@ -96,6 +99,7 @@ export default function CanvasSequence({ folder, frameCount, id, children, onPro
         scrub: 1,
         pin: true,
         anticipatePin: 1,
+        invalidateOnRefresh: true,
       }
     });
 
@@ -122,26 +126,36 @@ export default function CanvasSequence({ folder, frameCount, id, children, onPro
     }, 0);
 
     // Apply native GSAP Parallax to layered children
-    const parallaxLayers = container.querySelectorAll("[data-parallax]");
+    const parallaxLayers = container.querySelectorAll("[data-parallax], [data-parallax-x]");
     parallaxLayers.forEach(layer => {
-      const depth = parseFloat(layer.getAttribute("data-parallax") || "0");
-      if (depth !== 0) {
-        // A depth of 1x corresponds to the natural scroll speed. 
-        // 300% implies 3 viewport heights of scroll distance.
-        const totalDistance = window.innerHeight * 3 * depth;
+      const depthY = parseFloat(layer.getAttribute("data-parallax") || "0");
+      const depthX = parseFloat(layer.getAttribute("data-parallax-x") || "0");
+      
+      if (depthY !== 0 || depthX !== 0) {
+        // Scroll distance is 300% (3 viewport heights)
+        const totalDistanceY = window.innerHeight * 3 * depthY;
+        const totalDistanceX = window.innerWidth * 3 * depthX;
 
-        // Start lower, scrub to higher, passing through center at 50% scrub progress
-        gsap.set(layer, { y: totalDistance / 2 });
+        // Start from positive offset, scrub to negative offset
+        gsap.set(layer, { 
+          y: totalDistanceY / 2,
+          x: totalDistanceX / 2 
+        });
+
         tl.to(layer, {
-          y: -totalDistance / 2,
+          y: -totalDistanceY / 2,
+          x: -totalDistanceX / 2,
           ease: "none"
         }, 0);
       }
     });
 
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.imageSmoothingQuality = "high";
+      
       const currentImg = imagesRef.current[Math.round(obj.frame)];
       if (currentImg && currentImg.complete) {
         drawImage(currentImg);
@@ -153,17 +167,17 @@ export default function CanvasSequence({ folder, frameCount, id, children, onPro
     return () => {
       window.removeEventListener("resize", handleResize);
       if (observer) observer.disconnect();
-      tl.kill();
+      if (tl) tl.kill();
       ScrollTrigger.getAll().forEach(t => {
         if (t.vars.trigger === container) {
-          t.kill();
+          (t as any).kill(true); // Revert all pinning and kill
         }
       });
     };
-  }, [folder, frameCount, priority]);
+  }, [folder, frameCount, priority, id]);
 
   return (
-    <section id={id} ref={containerRef} aria-label={ariaLabel} className="h-screen w-full relative bg-background overflow-hidden">
+    <section id={id} ref={containerRef} aria-label={ariaLabel} className="min-h-[100dvh] h-[100dvh] w-full relative bg-background overflow-hidden">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full object-cover z-0"
